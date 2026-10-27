@@ -1,0 +1,697 @@
+{
+ "steel_trad": [
+  {
+   "material": "Steel, Structural",
+   "qty_kg": 23561.9,
+   "ee_factor": 24.4,
+   "note": null
+  },
+  {
+   "material": "Steel, Sheet",
+   "qty_kg": 1697.7,
+   "ee_factor": 32,
+   "note": null
+  },
+  {
+   "material": "Steel, Rebar",
+   "qty_kg": 2281.25,
+   "ee_factor": 21.6,
+   "note": null
+  },
+  {
+   "material": "Concrete",
+   "qty_kg": 92160,
+   "ee_factor": 1.05,
+   "note": null
+  },
+  {
+   "material": "Insulation, Mineral Wool",
+   "qty_kg": 0,
+   "ee_factor": 0,
+   "excluded": true,
+   "note": "izolasyonun energy uzerinde ki etkisini gormek icin tradational evlerde izolasyon olmadigi var sayilmistir"
+  },
+  {
+   "material": "Cladding, Cement Fibreboard",
+   "qty_kg": 3724.98,
+   "ee_factor": 4.15,
+   "note": null
+  },
+  {
+   "material": "Glass Fibre Plasterboard",
+   "qty_kg": 3950,
+   "ee_factor": 6.75,
+   "note": null
+  },
+  {
+   "material": "Plasterboard",
+   "qty_kg": 6664.01,
+   "ee_factor": 6.75,
+   "note": null
+  },
+  {
+   "material": "Mortar",
+   "qty_kg": 6084,
+   "ee_factor": 1.4,
+   "note": null
+  },
+  {
+   "material": "Screed",
+   "qty_kg": 96921.62,
+   "ee_factor": 0.99,
+   "note": null
+  },
+  {
+   "material": "Ceramic, Tile",
+   "qty_kg": 2018.84,
+   "ee_factor": 10,
+   "note": null
+  },
+  {
+   "material": "Laminate",
+   "qty_kg": 780.3,
+   "ee_factor": 12,
+   "note": null
+  },
+  {
+   "material": "Rubber, Synthetic",
+   "qty_kg": 13.464,
+   "ee_factor": 83.1,
+   "note": null
+  },
+  {
+   "material": "Plaster",
+   "qty_kg": 1200,
+   "ee_factor": 1.8,
+   "note": null
+  },
+  {
+   "material": "Paint",
+   "qty_kg": 86.66,
+   "ee_factor": 68,
+   "note": null
+  },
+  {
+   "material": "Timber Door",
+   "qty_kg": 582.05,
+   "ee_factor": 9.5,
+   "note": null
+  },
+  {
+   "material": "Aluminium, Profile",
+   "qty_kg": 261.3,
+   "ee_factor": 155,
+   "note": null
+  },
+  {
+   "material": "Glass",
+   "qty_kg": 693.36,
+   "ee_factor": 15,
+   "note": "izolasyonun energy uzerinde ki etkisini gormek icin tradational evlerde tek cam kullanilmistir"
+  },
+  {
+   "material": "Bitumen Membrane",
+   "qty_kg": 808.48,
+   "ee_factor": 47,
+   "note": null
+  },
+  {
+   "material": "Lean Concrete",
+   "qty_kg": 15870,
+   "ee_factor": 0.69,
+   "note": null
+  },
+  {
+   "material": "Clay, Tile",
+   "qty_kg": 0,
+   "ee_factor": 0,
+   "excluded": true,
+   "note": "Clay tile embodied energy hesaplanirken yok sayilmistir"
+  }
+ ],
+ "rc_trad": [
+  {
+   "material": "Steel, Rebar",
+   "qty_kg": 7299.55,
+   "ee_factor": 21.6,
+   "note": null
+  },
+  {
+   "material": "Concrete",
+   "qty_kg": 168528,
+   "ee_factor": 1.05,
+   "note": null
+  },
+  {
+   "material": "Clay, Brick",
+   "qty_kg": 86256.8,
+   "ee_factor": 3,
+   "note": null
+  },
+  {
+   "material": "Insulation, Mineral Wool",
+   "qty_kg": 0,
+   "ee_factor": 0,
+   "excluded": true,
+   "note": "izolasyonun energy uzerinde ki etkisini gormek icin tradational evlerde izolasyon olmadigi var sayilmistir"
+  },
+  {
+   "material": "Mortar",
+   "qty_kg": 16536,
+   "ee_factor": 1.4,
+   "note": null
+  },
+  {
+   "material": "Screed",
+   "qty_kg": 96921.62,
+   "ee_factor": 0.99,
+   "note": null
+  },
+  {
+   "material": "Ceramic, Tile",
+   "qty_kg": 2018.84,
+   "ee_factor": 10,
+   "note": null
+  },
+  {
+   "material": "Laminate",
+   "qty_kg": 780.3,
+   "ee_factor": 12,
+   "note": null
+  },
+  {
+   "material": "Rubber, Synthetic",
+   "qty_kg": 13.464,
+   "ee_factor": 83.1,
+   "note": null
+  },
+  {
+   "material": "Plaster",
+   "qty_kg": 11888,
+   "ee_factor": 1.8,
+   "note": null
+  },
+  {
+   "material": "Paint",
+   "qty_kg": 86.66,
+   "ee_factor": 68,
+   "note": null
+  },
+  {
+   "material": "Timber Door",
+   "qty_kg": 582.05,
+   "ee_factor": 9.5,
+   "note": null
+  },
+  {
+   "material": "Aluminium, Profile",
+   "qty_kg": 261.3,
+   "ee_factor": 155,
+   "note": null
+  },
+  {
+   "material": "Glass",
+   "qty_kg": 693.36,
+   "ee_factor": 15,
+   "note": "izolasyonun energy uzerinde ki etkisini gormek icin tradational evlerde tek cam kullanilmistir"
+  },
+  {
+   "material": "Bitumen Membrane",
+   "qty_kg": 808.48,
+   "ee_factor": 47,
+   "note": null
+  },
+  {
+   "material": "Lean Concrete",
+   "qty_kg": 15870,
+   "ee_factor": 0.69,
+   "note": null
+  },
+  {
+   "material": "Clay, Tile",
+   "qty_kg": 0,
+   "ee_factor": 0,
+   "excluded": true,
+   "note": "Clay tile embodied energy hesaplanirken yok sayilmistir"
+  }
+ ],
+ "timber_trad": [
+  {
+   "material": "Timber Structure, I Beam",
+   "qty_kg": 9441.19,
+   "ee_factor": 12,
+   "note": null
+  },
+  {
+   "material": "Timber Floor, Plywood",
+   "qty_kg": 4480,
+   "ee_factor": 12,
+   "note": null
+  },
+  {
+   "material": "Steel, Rebar",
+   "qty_kg": 2281.25,
+   "ee_factor": 21.6,
+   "note": null
+  },
+  {
+   "material": "Concrete",
+   "qty_kg": 92160,
+   "ee_factor": 1.05,
+   "note": null
+  },
+  {
+   "material": "Insulation, Mineral Wool",
+   "qty_kg": 0,
+   "ee_factor": 0,
+   "excluded": true,
+   "note": "izolasyonun energy uzerinde ki etkisini gormek icin tradational evlerde izolasyon olmadigi var sayilmistir"
+  },
+  {
+   "material": "Internal Cladding, Hardwood",
+   "qty_kg": 0,
+   "ee_factor": 0,
+   "excluded": true,
+   "note": "Hardwood embodied energy hesaplanirken yok sayilmistir"
+  },
+  {
+   "material": "External Cladding, Wood-plastic",
+   "qty_kg": 3619,
+   "ee_factor": 12,
+   "note": null
+  },
+  {
+   "material": "MDF",
+   "qty_kg": 4160,
+   "ee_factor": 11,
+   "note": null
+  },
+  {
+   "material": "Mortar",
+   "qty_kg": 6084,
+   "ee_factor": 1.4,
+   "note": null
+  },
+  {
+   "material": "Ceramic, Tile",
+   "qty_kg": 2018.84,
+   "ee_factor": 10,
+   "note": null
+  },
+  {
+   "material": "Laminate",
+   "qty_kg": 780.3,
+   "ee_factor": 12,
+   "note": null
+  },
+  {
+   "material": "Rubber, Synthetic",
+   "qty_kg": 13.464,
+   "ee_factor": 83.1,
+   "note": null
+  },
+  {
+   "material": "Timber Door",
+   "qty_kg": 582.05,
+   "ee_factor": 9.5,
+   "note": null
+  },
+  {
+   "material": "Aluminium, Profile",
+   "qty_kg": 261.3,
+   "ee_factor": 155,
+   "note": null
+  },
+  {
+   "material": "Glass",
+   "qty_kg": 693.36,
+   "ee_factor": 15,
+   "note": "izolasyonun energy uzerinde ki etkisini gormek icin tradational evlerde tek cam kullanilmistir"
+  },
+  {
+   "material": "Bitumen Membrane",
+   "qty_kg": 808.48,
+   "ee_factor": 47,
+   "note": null
+  },
+  {
+   "material": "Lean Concrete",
+   "qty_kg": 15870,
+   "ee_factor": 0.69,
+   "note": null
+  },
+  {
+   "material": "Clay, Tile",
+   "qty_kg": 0,
+   "ee_factor": 0,
+   "excluded": true,
+   "note": "Clay tile embodied energy hesaplanirken yok sayilmistir"
+  }
+ ],
+ "steel_low": [
+  {
+   "material": "Low Energy Steel, Structural",
+   "qty_kg": 23561.9,
+   "ee_factor": 9.6,
+   "note": null
+  },
+  {
+   "material": "Steel, Sheet",
+   "qty_kg": 1697.7,
+   "ee_factor": 32,
+   "note": null
+  },
+  {
+   "material": "Low Energy Steel, Rebar",
+   "qty_kg": 2281.25,
+   "ee_factor": 8.8,
+   "note": null
+  },
+  {
+   "material": "Low Energy Concrete",
+   "qty_kg": 92160,
+   "ee_factor": 0.75,
+   "note": null
+  },
+  {
+   "material": "Insulation, Mineral Wool",
+   "qty_kg": 3093.75,
+   "ee_factor": 16.8,
+   "note": "izolasyonun energy uzerinde ki etkisini gormek icin low embodied evlerde izolasyon yapilmistir"
+  },
+  {
+   "material": "Cladding, Cement Fibreboard",
+   "qty_kg": 3724.98,
+   "ee_factor": 4.15,
+   "note": null
+  },
+  {
+   "material": "Glass Fibre Plasterboard",
+   "qty_kg": 3950,
+   "ee_factor": 6.75,
+   "note": null
+  },
+  {
+   "material": "Plasterboard",
+   "qty_kg": 6664.01,
+   "ee_factor": 6.75,
+   "note": null
+  },
+  {
+   "material": "Mortar",
+   "qty_kg": 6084,
+   "ee_factor": 1.4,
+   "note": null
+  },
+  {
+   "material": "Screed",
+   "qty_kg": 96921.62,
+   "ee_factor": 0.99,
+   "note": null
+  },
+  {
+   "material": "Ceramic, Tile",
+   "qty_kg": 2018.84,
+   "ee_factor": 10,
+   "note": null
+  },
+  {
+   "material": "Laminate",
+   "qty_kg": 780.3,
+   "ee_factor": 12,
+   "note": null
+  },
+  {
+   "material": "Rubber, Synthetic",
+   "qty_kg": 13.464,
+   "ee_factor": 83.1,
+   "note": null
+  },
+  {
+   "material": "Plaster",
+   "qty_kg": 1200,
+   "ee_factor": 1.8,
+   "note": null
+  },
+  {
+   "material": "Paint",
+   "qty_kg": 86.66,
+   "ee_factor": 68,
+   "note": null
+  },
+  {
+   "material": "Timber Door",
+   "qty_kg": 582.05,
+   "ee_factor": 9.5,
+   "note": null
+  },
+  {
+   "material": "Low Energy Aluminium, Profile",
+   "qty_kg": 261.3,
+   "ee_factor": 28.8,
+   "note": null
+  },
+  {
+   "material": "Double Glazed Glass",
+   "qty_kg": 1386.72,
+   "ee_factor": 15,
+   "note": "izolasyonun energy uzerinde ki etkisini gormek icin low embodied evlerde cift cam kullanilmistir"
+  },
+  {
+   "material": "Bitumen Membrane",
+   "qty_kg": 808.48,
+   "ee_factor": 47,
+   "note": null
+  },
+  {
+   "material": "Lean Concrete",
+   "qty_kg": 15870,
+   "ee_factor": 0.69,
+   "note": null
+  },
+  {
+   "material": "Clay, Tile",
+   "qty_kg": 0,
+   "ee_factor": 0,
+   "excluded": true,
+   "note": "Clay tile embodied energy hesaplanirken yok sayilmistir"
+  }
+ ],
+ "rc_low": [
+  {
+   "material": "Low Energy Steel, Rebar",
+   "qty_kg": 7299.5,
+   "ee_factor": 8.8,
+   "note": null
+  },
+  {
+   "material": "Low Energy Concrete",
+   "qty_kg": 168528,
+   "ee_factor": 0.75,
+   "note": null
+  },
+  {
+   "material": "Low Energy Clay, Brick",
+   "qty_kg": 86256.8,
+   "ee_factor": 2,
+   "note": null
+  },
+  {
+   "material": "Insulation, Mineral Wool",
+   "qty_kg": 1693.23,
+   "ee_factor": 16.8,
+   "note": "izolasyonun energy uzerinde ki etkisini gormek icin low embodied evlerde izolasyon yapilmistir"
+  },
+  {
+   "material": "Mortar",
+   "qty_kg": 16536,
+   "ee_factor": 1.4,
+   "note": null
+  },
+  {
+   "material": "Screed",
+   "qty_kg": 96921.62,
+   "ee_factor": 0.99,
+   "note": null
+  },
+  {
+   "material": "Ceramic, Tile",
+   "qty_kg": 2018.84,
+   "ee_factor": 10,
+   "note": null
+  },
+  {
+   "material": "Laminate",
+   "qty_kg": 780.3,
+   "ee_factor": 12,
+   "note": null
+  },
+  {
+   "material": "Rubber, Synthetic",
+   "qty_kg": 13.464,
+   "ee_factor": 83.1,
+   "note": null
+  },
+  {
+   "material": "Plaster",
+   "qty_kg": 11888,
+   "ee_factor": 1.8,
+   "note": null
+  },
+  {
+   "material": "Paint",
+   "qty_kg": 86.66,
+   "ee_factor": 68,
+   "note": null
+  },
+  {
+   "material": "Timber Door",
+   "qty_kg": 582.05,
+   "ee_factor": 9.5,
+   "note": null
+  },
+  {
+   "material": "Low Energy Aluminium, Profile",
+   "qty_kg": 261.3,
+   "ee_factor": 28.8,
+   "note": null
+  },
+  {
+   "material": "Double Glazed Glass",
+   "qty_kg": 1386.72,
+   "ee_factor": 15,
+   "note": "izolasyonun energy uzerinde ki etkisini gormek icin low embodied evlerde cift cam kullanilmistir"
+  },
+  {
+   "material": "Bitumen Membrane",
+   "qty_kg": 808.48,
+   "ee_factor": 47,
+   "note": null
+  },
+  {
+   "material": "Lean Concrete",
+   "qty_kg": 15870,
+   "ee_factor": 0.69,
+   "note": null
+  },
+  {
+   "material": "Clay, Tile",
+   "qty_kg": 0,
+   "ee_factor": 0,
+   "excluded": true,
+   "note": "Clay tile embodied energy hesaplanirken yok sayilmistir"
+  }
+ ],
+ "timber_low": [
+  {
+   "material": "Low Energy Timber Structure",
+   "qty_kg": 9441.19,
+   "ee_factor": 8,
+   "note": null
+  },
+  {
+   "material": "Timber Floor, Plywood",
+   "qty_kg": 4480,
+   "ee_factor": 12,
+   "note": null
+  },
+  {
+   "material": "Low Energy Steel, Rebar",
+   "qty_kg": 2281.25,
+   "ee_factor": 8.8,
+   "note": null
+  },
+  {
+   "material": "Low Energy Concrete",
+   "qty_kg": 92160,
+   "ee_factor": 0.75,
+   "note": null
+  },
+  {
+   "material": "Insulation, Mineral Wool",
+   "qty_kg": 3093.75,
+   "ee_factor": 16.8,
+   "note": "izolasyonun energy uzerinde ki etkisini gormek icin low embodied evlerde izolasyon yapilmistir"
+  },
+  {
+   "material": "Internal Cladding, Hardwood",
+   "qty_kg": 0,
+   "ee_factor": 0,
+   "excluded": true,
+   "note": "Hardwood embodied energy hesaplanirken yok sayilmistir"
+  },
+  {
+   "material": "External Cladding, Wood-plastic",
+   "qty_kg": 3619,
+   "ee_factor": 12,
+   "note": null
+  },
+  {
+   "material": "MDF",
+   "qty_kg": 4160,
+   "ee_factor": 11,
+   "note": null
+  },
+  {
+   "material": "Mortar",
+   "qty_kg": 6084,
+   "ee_factor": 1.4,
+   "note": null
+  },
+  {
+   "material": "Ceramic, Tile",
+   "qty_kg": 2018.84,
+   "ee_factor": 10,
+   "note": null
+  },
+  {
+   "material": "Laminate",
+   "qty_kg": 780.3,
+   "ee_factor": 12,
+   "note": null
+  },
+  {
+   "material": "Rubber, Synthetic",
+   "qty_kg": 13.464,
+   "ee_factor": 83.1,
+   "note": null
+  },
+  {
+   "material": "Timber Door",
+   "qty_kg": 582.05,
+   "ee_factor": 9.5,
+   "note": null
+  },
+  {
+   "material": "Low Energy Aluminium, Profile",
+   "qty_kg": 261.3,
+   "ee_factor": 28.8,
+   "note": null
+  },
+  {
+   "material": "Double Glazed Glass",
+   "qty_kg": 1386.72,
+   "ee_factor": 15,
+   "note": "izolasyonun energy uzerinde ki etkisini gormek icin low embodied evlerde cift cam kullanilmistir"
+  },
+  {
+   "material": "Bitumen Membrane",
+   "qty_kg": 808.48,
+   "ee_factor": 47,
+   "note": null
+  },
+  {
+   "material": "Lean Concrete",
+   "qty_kg": 15870,
+   "ee_factor": 0.69,
+   "note": null
+  },
+  {
+   "material": "Clay, Tile",
+   "qty_kg": 0,
+   "ee_factor": 0,
+   "excluded": true,
+   "note": "Clay tile embodied energy hesaplanirken yok sayilmistir"
+  }
+ ]
+}
