@@ -88,7 +88,8 @@ else:
     c[4].metric("Net zero reached after", "Never", "generation ≤ operation", delta_color="inverse")
 
 # ---------------- Charts ----------------
-left, right = st.columns(2)
+tab_design, tab_compare = st.tabs(["Your design", "Traditional vs RNZE comparison"])
+left, right = tab_design.columns(2)
 years = list(range(0, life + 1))
 balance = [-E1 + max(res["surplus_kwh"], -1e12) * y for y in years]
 fig = go.Figure(go.Scatter(x=years, y=balance, mode="lines", name="Cumulative balance"))
@@ -103,8 +104,39 @@ bar.update_layout(title="Largest embodied-energy contributors", xaxis_title="kWh
                   yaxis={"autorange": "reversed"})
 right.plotly_chart(bar, width="stretch")
 
+# ---------------- Comparison (case study, fixed paper inputs) ----------------
+with tab_compare:
+    trad_op = Operation(heating_load_kw=26.45, heating_eff=0.92, cooling_kwh_thermal=4350, cooling_cop=1.0,
+                        lighting_kwh=4793, appliances_kwh=5125).annual_kwh()
+    rnze_op = Operation(heating_load_kw=8.98, heating_eff=3.5, cooling_kwh_thermal=4350, cooling_cop=3.5,
+                        lighting_kwh=702.4, appliances_kwh=3720).annual_kwh()
+    rnze_gen = Generation(pv_area_m2=39.9, wind_kwh=6025.4).annual_kwh()
+    yrs = list(range(0, 51))
+    colours = {"Steel": "#d62728", "Reinforced concrete": "#1f77b4", "Timber": "#2ca02c"}
+    full, zoom, rows = go.Figure(), go.Figure(), []
+    for name, sk in SYSTEMS.items():
+        e1_t = ee_kwh(table(f"{sk}_trad")); e1_r = ee_kwh(table(f"{sk}_low"))
+        bt = [-e1_t - trad_op * y for y in yrs]
+        br = [-e1_r + (rnze_gen - rnze_op) * y for y in yrs]
+        full.add_trace(go.Scatter(x=yrs, y=bt, name=f"{name}: traditional", line=dict(color=colours[name], dash="dot")))
+        full.add_trace(go.Scatter(x=yrs, y=br, name=f"{name}: RNZE", line=dict(color=colours[name])))
+        zoom.add_trace(go.Scatter(x=yrs, y=br, name=f"{name}: RNZE", line=dict(color=colours[name])))
+        nz = energy_net_zero(e1_r, rnze_op, rnze_gen)
+        rows.append({"System": name, "Traditional E1 (kWh)": round(e1_t), "RNZE E1 (kWh)": round(e1_r),
+                     "Traditional balance at year 50 (kWh)": round(bt[-1]), "RNZE balance at year 50 (kWh)": round(br[-1]),
+                     "RNZE net zero after (yrs)": round(nz["years_exact"], 1)})
+    for f, t in [(full, "50-year cumulative energy balance: traditional houses never recover"),
+                 (zoom, "RNZE houses only: when the energy debt is repaid")]:
+        f.add_hline(y=0, line_dash="dash")
+        f.update_layout(title=t, xaxis_title="Year", yaxis_title="Cumulative balance (kWh)", height=420)
+    st.plotly_chart(full, width="stretch")
+    st.plotly_chart(zoom, width="stretch")
+    st.dataframe(pd.DataFrame(rows), width="stretch")
+    st.caption(f"Case-study inputs: traditional operation {trad_op:,.0f} kWh/yr with no generation; "
+               f"RNZE operation {rnze_op:,.0f} kWh/yr and generation {rnze_gen:,.0f} kWh/yr.")
+
 # ---------------- Recommendations ----------------
-st.subheader("Recommendations")
+tab_design.subheader("Recommendations")
 recs = []
 if uploaded is None and key.endswith("trad"):
     trad, low = EE[key], EE[key.replace("trad", "low")]
@@ -117,18 +149,18 @@ if uploaded is None and key.endswith("trad"):
                          "Saving (kWh)": round((before - after) / MJ_PER_KWH),
                          "Saving (%)": round(100 * (before - after) / before)})
 if recs:
-    st.write("Low-embodied-energy substitutions (functionally equivalent, from case-study library):")
-    st.dataframe(pd.DataFrame(recs).sort_values("Saving (kWh)", ascending=False), width="stretch")
+    tab_design.write("Low-embodied-energy substitutions (functionally equivalent, from case-study library):")
+    tab_design.dataframe(pd.DataFrame(recs).sort_values("Saving (kWh)", ascending=False), width="stretch")
 if res["surplus_kwh"] <= 0:
     need = (E2 - E3) / (irr * pv_eff) if irr * pv_eff else 0
-    st.warning(f"Generation does not cover operation. About {need:,.0f} m² more PV, or lower operational "
+    tab_design.warning(f"Generation does not cover operation. About {need:,.0f} m² more PV, or lower operational "
                f"demand (insulation, heat pump, LED, A+++ appliances), is needed before net zero is possible.")
 elif not res["within_life"]:
     extra = E1 / life - res["surplus_kwh"]
-    st.info(f"To reach net zero within {life} years, increase the annual surplus by about {extra:,.0f} kWh/yr "
+    tab_design.info(f"To reach net zero within {life} years, increase the annual surplus by about {extra:,.0f} kWh/yr "
             f"(≈ {extra / (irr * pv_eff):,.0f} m² of additional PV) or reduce embodied energy.")
 else:
-    st.success("This design reaches realistic net zero energy within its design life.")
+    tab_design.success("This design reaches realistic net zero energy within its design life.")
 
 st.caption("Prototype v0. Embodied energy factors from ICE (cradle-to-gate); operational energy uses simplified "
            "annual methods from the case study. Not a compliance tool.")
