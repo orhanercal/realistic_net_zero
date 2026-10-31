@@ -22,7 +22,7 @@ st.set_page_config(page_title="NZE Intelligence | RNZEB prototype", layout="wide
 st.title("NZE Intelligence: Realistic Net Zero Energy Building (RNZEB) prototype")
 st.caption("Balances embodied energy (E1) and operational energy (E2) against on-site renewable "
            "generation (E3): 0 ≥ E1 + E2 − E3. Method: Ercal & Shafique, Sustainable Horizons (2026). "
-           "Prototype v0.2: a concept-stage decision tool, not a compliance tool.")
+           "Prototype v0.3: a concept-stage decision tool, not a compliance tool.")
 
 
 def table(key):
@@ -45,18 +45,10 @@ def make_op(p):
 with st.sidebar:
     st.header("1. Building")
     system = st.selectbox("Structural system", list(SYSTEMS))
-    btype = st.radio("Building type", ["RNZE building", "Traditional building", "Custom"],
+    btype = st.radio("Building type", ["RNZE building", "Traditional building"],
                      help="RNZE: low embodied energy materials, low operational energy and renewable generation. "
-                          "Traditional: typical materials and systems, no on-site generation. "
-                          "Custom: combine the measures to see the effect of each one.")
-    if btype == "RNZE building":
-        mat_low, op_low, gen_on = True, True, True
-    elif btype == "Traditional building":
-        mat_low, op_low, gen_on = False, False, False
-    else:
-        mat_low = st.selectbox("Materials", ["Low embodied energy", "Typical"]) == "Low embodied energy"
-        op_low = st.selectbox("Operational energy", ["Low (RNZE systems)", "Typical"]) == "Low (RNZE systems)"
-        gen_on = st.selectbox("Renewable generation", ["On", "Off"]) == "On"
+                          "Traditional: typical materials and systems, no on-site generation.")
+    mat_low = op_low = gen_on = (btype == "RNZE building")
 
     p = dict(OPS["low" if op_low else "typ"])
     g = dict(GEN)
@@ -88,6 +80,9 @@ with st.sidebar:
 # ---------------- Calculations ----------------
 key = f"{SYSTEMS[system]}_{'low' if mat_low else 'trad'}"
 df = pd.read_csv(uploaded) if uploaded is not None else table(key)
+st.subheader(f"{btype}: {system.lower()} structure")
+with st.expander("Bill of materials (editable: change quantities or factors and the results update)", expanded=True):
+    df = st.data_editor(df, num_rows="dynamic", width="stretch", key=f"bom_{key}")
 op = make_op(p)
 gen = Generation(pv_area_m2=g["pv"], irradiance_kwh_m2=g["irr"], pv_eff=g["eff"],
                  wind_kwh=g["wind"] if use_wind else 0) if gen_on else Generation(pv_area_m2=0, wind_kwh=0)
@@ -95,7 +90,6 @@ E1, E2, E3 = ee_kwh(df), op.annual_kwh(), gen.annual_kwh()
 res = energy_net_zero(E1, E2, E3, lifespan=life)
 
 # ---------------- Summary of the three energy flows ----------------
-st.subheader(f"{btype}: {system.lower()} structure")
 c1, c2, c3 = st.columns(3)
 with c1:
     st.markdown("**E1 Materials**")
@@ -130,7 +124,7 @@ else:
     m[1].metric("Realistic net zero reached after", "Never",
                 "no on-site generation" if not gen_on else "generation does not cover operation", delta_color="inverse")
 
-tabs = ["Your design", "Traditional vs RNZE comparison"] + (["Effect of each measure"] if btype == "Custom" else [])
+tabs = ["Your design", "Traditional vs RNZE comparison"]
 T = st.tabs(tabs)
 
 # ---------------- Tab 1: design ----------------
@@ -147,8 +141,6 @@ with T[0]:
     bar.update_layout(title="Largest embodied-energy contributors", xaxis_title="kWh", height=380,
                       yaxis={"autorange": "reversed"})
     right.plotly_chart(bar, width="stretch")
-    with st.expander("Bill of materials"):
-        st.dataframe(d2, hide_index=True, width="stretch")
 
     st.subheader("Recommendations")
     if uploaded is None and not mat_low:
@@ -202,27 +194,3 @@ with T[1]:
         f.update_layout(title=t, xaxis_title="Year", yaxis_title="Cumulative balance (kWh)", height=420)
     st.plotly_chart(full, width="stretch"); st.plotly_chart(zoom, width="stretch")
     st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
-
-# ---------------- Tab 3: effect of each measure (Custom only) ----------------
-if btype == "Custom":
-    with T[2]:
-        sk = SYSTEMS[system]
-        r_gen = Generation(pv_area_m2=GEN["pv"], wind_kwh=GEN["wind"]).annual_kwh()
-        steps = [("Traditional building", False, False, False),
-                 ("+ low embodied energy materials", True, False, False),
-                 ("+ low operational energy systems", True, True, False),
-                 ("+ renewable generation (RNZE building)", True, True, True)]
-        out = []
-        for label, ml, ol, go_on in steps:
-            e1 = ee_kwh(table(f"{sk}_{'low' if ml else 'trad'}"))
-            e2 = make_op(OPS["low" if ol else "typ"]).annual_kwh()
-            e3 = r_gen if go_on else 0
-            nz = energy_net_zero(e1, e2, e3)
-            out.append({"Design": label, "Embodied energy (kWh)": round(e1), "Operation (kWh/yr)": round(e2),
-                        "Generation (kWh/yr)": round(e3), "50-year balance (kWh)": round(-e1 + (e3 - e2) * 50),
-                        "Net zero after": f"{nz['years_exact']:.1f} yrs" if nz["year_reached"] else "Never"})
-        st.write(f"Adding the RNZE measures one at a time to a {system.lower()} house:")
-        st.dataframe(pd.DataFrame(out), hide_index=True, width="stretch")
-        st.caption("Each step keeps the previous ones. Only the final step, with all three measures, repays the energy debt. "
-                   "Across structural systems with the same operation and generation, the difference in net zero timing "
-                   "comes from embodied energy alone.")
