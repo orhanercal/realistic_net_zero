@@ -23,7 +23,8 @@ PAL = {"rnze": {"e1": ("#F8F2E7", "#E4D7BE"), "e2": ("#EBF2FA", "#CADBEC"), "e3"
        "trad": {"e1": ("#EFE4CF", "#D6C29D"), "e2": ("#DCE7F3", "#B4CAE2"), "e3": ("#DCEBE1", "#AFCFBA")}}
 INK, MUTED = "#14302E", "#5B6E6C"
 C_TRAD, C_RNZE = "#A8875A", "#2F6B5A"                      # dark sand / dark green
-C_SYS = {"Steel": "#3E6E9E", "Reinforced concrete": "#A8875A", "Timber": "#2F6B5A"}
+C_SYS = {"Steel": "#7FA3C6", "Reinforced concrete": "#C2A27C", "Timber": "#7FAF8F"}
+C_BAR = "#D8C3A0"
 
 st.set_page_config(page_title="NZE Intelligence | RNZEB prototype", layout="wide")
 
@@ -43,7 +44,7 @@ def css():
     .card td.n,.card th.n{text-align:right;white-space:nowrap}
     .card .total{margin-top:auto;padding-top:12px}
     .card .total .lab{font-size:.85rem;color:%s}
-    .card .total .val{font-size:1.75rem;font-weight:600;line-height:1.2}
+    .card .total .val{font-size:1.45rem;font-weight:600;line-height:1.2;white-space:nowrap}
     .res-row{display:flex;gap:16px;justify-content:center;align-items:stretch;margin:4px 0 22px}
     .res{background:#FAFAF7;border:1px solid #DADFDE;border-radius:12px;padding:14px 28px;text-align:center;min-width:280px}
     .res .lab{font-size:.88rem;color:%s} .res .val{font-size:1.9rem;font-weight:600;color:%s}
@@ -62,6 +63,8 @@ def css():
     table.sum th:first-child,table.sum td:first-child{text-align:left}
     table.sum td{text-align:right;padding:6px 8px;white-space:nowrap}
     table.sum tr.pairend td{border-bottom:2px solid #C9D8D7}
+    .pos{color:#3F8A5F;font-weight:600} .neg{color:#B5544A;font-weight:600}
+    .bomfoot{border:1px solid #E6EAEA;border-top:none;border-radius:0 0 10px 10px;margin-top:-16px;padding:8px 14px;text-align:right;font-weight:600;background:#FAFBFB}
     </style>""" % (INK, MUTED, MUTED, MUTED, INK, MUTED, INK, INK, INK, INK, MUTED, INK), unsafe_allow_html=True)
 
 
@@ -95,7 +98,7 @@ def box(title, sub=None):
 
 
 def style_fig(fig, h=360, ytitle="kWh"):
-    fig.update_layout(height=h, margin=dict(l=10, r=10, t=10, b=10), plot_bgcolor="white", paper_bgcolor="white",
+    fig.update_layout(height=h, margin=dict(l=10, r=10, t=42, b=10), plot_bgcolor="white", paper_bgcolor="white",
                       font=dict(color=INK), legend=dict(orientation="h", y=-0.22), yaxis_title=ytitle)
     fig.update_xaxes(gridcolor="#EEF2F1"); fig.update_yaxes(gridcolor="#EEF2F1", zerolinecolor="#C9D8D7")
     return fig
@@ -112,7 +115,7 @@ def balance_trace(fig, e1, e2, e3, life, name, color, dash=None, mark=True, labe
         r = energy_net_zero(e1, e2, e3, lifespan=life)
         if r["year_reached"] and r["years_exact"] <= life:
             fig.add_trace(go.Scatter(x=[r["years_exact"]], y=[0], mode="markers+text", marker=dict(size=10, color=color),
-                                     text=[f"Net zero: {r['years_exact']:.1f} yrs"], textposition="top left",
+                                     text=[f"Net zero: {r['years_exact']:.1f} yrs"], textposition="bottom left",
                                      textfont=dict(size=11, color=color), showlegend=False, hoverinfo="skip"))
 
 
@@ -178,8 +181,14 @@ if sk not in st.session_state:
     st.session_state[sk] = table(key); st.session_state[vk] = 0
 base = st.session_state[sk].copy()
 base["Total (MJ)"] = (base["Quantity (kg)"] * base["Embodied energy (MJ/kg)"]).round(1)
-st.markdown('<div class="sec">Bill of materials</div>', unsafe_allow_html=True)
-st.caption("Editable: change a quantity or factor, or add a row, and all results update.")
+h1, h2 = st.columns([5, 1], vertical_alignment="bottom")
+h1.markdown('<div class="sec">Bill of materials</div>', unsafe_allow_html=True)
+if h2.button("+ Add material", width="stretch"):
+    st.session_state[sk] = pd.concat([st.session_state[sk], pd.DataFrame([{"Material type": "New material",
+        "Quantity (kg)": 0.0, "Embodied energy (MJ/kg)": 0.0}])], ignore_index=True)
+    st.session_state[vk] += 1; st.rerun()
+st.caption("Edit any quantity or factor, or add a material with + Add material (or the empty row at the bottom). "
+           "All results update instantly.")
 edited = st.data_editor(base, num_rows="dynamic", width="stretch", hide_index=True, row_height=28,
                         height=int((len(base) + 2) * 28 + 6), key=f"ed_{key}_{st.session_state[vk]}",
                         disabled=["Total (MJ)"],
@@ -191,7 +200,8 @@ if not clean.reset_index(drop=True).equals(st.session_state[sk].reset_index(drop
     st.session_state[sk] = clean.reset_index(drop=True); st.session_state[vk] += 1; st.rerun()
 df = st.session_state[sk]
 E1 = ee_kwh(df)
-st.markdown(f"**Total embodied energy: {E1 * MJ_PER_KWH:,.0f} MJ = {E1:,.0f} kWh**")
+st.markdown(f'<div class="bomfoot">Total embodied energy: {E1 * MJ_PER_KWH:,.0f} MJ = {E1:,.0f} kWh</div>',
+            unsafe_allow_html=True)
 
 # ---------------- Calculations ----------------
 op = make_op(p)
@@ -221,7 +231,7 @@ if not rnze:
                f'is the only realistic route.</div>')
 c = lambda e: f'background:{pt[e][0]};border:1px solid {pt[e][1]}'
 st.markdown(f"""<div class="card-row">
-<div class="card" style="flex:2;{c('e1')}"><h4>E1 Materials</h4>
+<div class="card" style="flex:2.4;{c('e1')}"><h4>E1 Materials</h4>
 <div class="sub">{'Low embodied energy materials' if rnze else 'Typical materials'}</div>
 <div class="total"><div class="lab">Embodied energy</div><div class="val">{E1:,.0f} kWh</div></div></div>
 <div class="card" style="flex:4;{c('e2')}"><h4>E2 Operation</h4>
@@ -252,14 +262,14 @@ with T[0]:
         with st.container(border=True):
             box("Cumulative energy balance", "Energy debt from materials, repaid by the annual renewable surplus.")
             fig = go.Figure(); fig.add_hline(y=0, line_dash="dash", line_color="#9AA9A7")
-            balance_trace(fig, E1, E2, E3, life, btype, C_RNZE if rnze else C_TRAD)
+            balance_trace(fig, E1, E2, E3, life, btype, C_SYS[system], dash=None if rnze else "dot")
             fig.update_xaxes(title="Year"); st.plotly_chart(style_fig(fig), width="stretch")
     with bcol:
         with st.container(border=True):
             box("Largest embodied-energy contributors", "Materials with the highest embodied energy in this design.")
             d2 = df.copy(); d2["kWh"] = d2["Quantity (kg)"] * d2["Embodied energy (MJ/kg)"] / MJ_PER_KWH
             top = d2.sort_values("kWh", ascending=False).head(8)
-            bar = go.Figure(go.Bar(x=top["kWh"], y=top["Material type"], orientation="h", marker_color=C_TRAD))
+            bar = go.Figure(go.Bar(x=top["kWh"], y=top["Material type"], orientation="h", marker_color=C_BAR))
             bar.update_yaxes(autorange="reversed"); bar.update_xaxes(title="kWh")
             st.plotly_chart(style_fig(bar, ytitle=""), width="stretch")
     with st.container(border=True):
@@ -304,14 +314,14 @@ with T[1]:
         with st.container(border=True):
             box(f"{system}: traditional vs RNZE", "Traditional houses keep adding energy debt; the RNZE house repays it.")
             f1 = go.Figure(); f1.add_hline(y=0, line_dash="dash", line_color="#9AA9A7")
-            balance_trace(f1, et, t_op, 0, 50, "Traditional", C_TRAD, dash="dash", label=False)
-            balance_trace(f1, er, r_op, r_gen, 50, "RNZE", C_RNZE, label=False)
+            balance_trace(f1, et, t_op, 0, 50, "Traditional", C_SYS[system], dash="dot", label=False)
+            balance_trace(f1, er, r_op, r_gen, 50, "RNZE", C_SYS[system], label=False)
             f1.update_xaxes(title="Year"); st.plotly_chart(style_fig(f1), width="stretch")
     with bcol:
         with st.container(border=True):
             box(f"{system} RNZE: when the energy debt is repaid", "Embodied energy debt at year 0, repaid by the annual renewable surplus.")
             f2 = go.Figure(); f2.add_hline(y=0, line_dash="dash", line_color="#9AA9A7")
-            balance_trace(f2, er, r_op, r_gen, 50, "RNZE", C_RNZE)
+            balance_trace(f2, er, r_op, r_gen, 50, "RNZE", C_SYS[system])
             f2.update_xaxes(title="Year"); st.plotly_chart(style_fig(f2), width="stretch")
 
     st.divider()
@@ -319,10 +329,10 @@ with T[1]:
     a, bcol = st.columns(2, gap="large")
     with a:
         with st.container(border=True):
-            box("Traditional vs RNZE: all structures", "Dashed: traditional. Solid: RNZE.")
+            box("Traditional vs RNZE: all structures", "Dotted: traditional. Solid: RNZE.")
             f3 = go.Figure(); f3.add_hline(y=0, line_dash="dash", line_color="#9AA9A7")
             for n, (t1, r1) in vals.items():
-                balance_trace(f3, t1, t_op, 0, 50, f"{n}: traditional", C_SYS[n], dash="dash", mark=False)
+                balance_trace(f3, t1, t_op, 0, 50, f"{n}: traditional", C_SYS[n], dash="dot", mark=False)
                 balance_trace(f3, r1, r_op, r_gen, 50, f"{n}: RNZE", C_SYS[n], mark=False)
             f3.update_xaxes(title="Year"); st.plotly_chart(style_fig(f3, h=400), width="stretch")
     with bcol:
@@ -343,9 +353,8 @@ with T[1]:
             for lab, e1, e2, e3, last in [("Traditional", t1, t_op, 0, False), ("RNZE", r1, r_op, r_gen, True)]:
                 bal = -e1 + (e3 - e2) * 50
                 pal = PAL["trad" if lab == "Traditional" else "rnze"]["e2"][0]
-                tag = ('<span class="pill ok">energy positive</span>' if bal > 0 else '<span class="pill bad">energy negative</span>')
                 rows += (f'<tr class="{"pairend" if last else ""}" style="background:{pal}"><td>{lab} {n.lower()}</td>'
                          f'<td>{fmt(-e1, True)}</td><td>{fmt(-e2, True)}</td><td>{fmt(e3, True) if e3 else "0"}</td>'
-                         f'<td>{fmt(bal, True)} {tag}</td></tr>')
+                         f'<td class="{'pos' if bal > 0 else 'neg'}">{fmt(bal, True)}</td></tr>')
         st.markdown(f"""<table class="sum"><tr><th>Building</th><th>E1 Embodied<br>(kWh)</th><th>E2 Operation<br>(kWh/yr)</th>
 <th>E3 Renewable<br>(kWh/yr)</th><th>Energy at<br>year 50 (kWh)</th></tr>{rows}</table>""", unsafe_allow_html=True)
