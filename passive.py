@@ -1,6 +1,6 @@
 """Passive design explorer (concept preview).
 
-Core heating method = the published RNZEB method (Ercal & Shafique, Sustainable Horizons 2026):
+Core heating method = the published RNZEB method (Sustainable Horizons, 17, 100163, 2026):
     load = (sum U*A*dT + 0.33*ACH*V*dT) * 1.2 ;  annual heat = load * 1800 h ;  energy = heat / efficiency
 Passive effects (solar gain, daylight, PV yield, mechanical ventilation) are added as DIFFERENCES from the
 published 'Optimum' design, so the Optimum settings reproduce the paper exactly.
@@ -103,9 +103,9 @@ def compass_svg(main_dir):
 
 
 def render(btype, E1, system):
-    st.caption("Concept preview with simplified physics. Optimum = the published case-study design; "
-               "the core heating method is the paper's, and passive effects are added as differences from Optimum. "
-               "Values marked ⓘ are assumptions. Not a compliance tool.")
+    st.caption("Optimum = the published case-study design. The core heating method is the published RNZEB method; "
+               "passive effects are added as differences from Optimum. Values marked ⓘ are assumptions. "
+               "Not a compliance tool.")
     left, right = st.columns([3, 2], gap="large")
     with left:
         with st.container(border=True):
