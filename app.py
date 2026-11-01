@@ -3,6 +3,7 @@ import json, os
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import passive
 from rnzeb_engine import Operation, Generation, energy_net_zero, MJ_PER_KWH
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -253,7 +254,7 @@ st.markdown(f"""<div class="res-row">
 <div class="res"><div class="lab">Realistic net zero reached after</div><div class="val">{nz}</div>
 <span class="pill {'ok' if ok else 'bad'}">{pill}</span></div></div>""", unsafe_allow_html=True)
 
-T = st.tabs([f"{btype} results", "Traditional vs RNZE comparison"])
+T = st.tabs([f"{btype} results", "Traditional vs RNZE comparison", "Passive design explorer (concept)"])
 
 # ---------------- Tab 1 ----------------
 with T[0]:
@@ -358,3 +359,7 @@ with T[1]:
                          f'<td class="{'pos' if bal > 0 else 'neg'}">{fmt(bal, True)}</td></tr>')
         st.markdown(f"""<table class="sum"><tr><th>Building</th><th>E1 Embodied<br>(kWh)</th><th>E2 Operation<br>(kWh/yr)</th>
 <th>E3 Renewable<br>(kWh/yr)</th><th>Energy at<br>year 50 (kWh)</th></tr>{rows}</table>""", unsafe_allow_html=True)
+
+# ---------------- Tab 3: passive design explorer ----------------
+with T[2]:
+    passive.render(btype, E1, system)
