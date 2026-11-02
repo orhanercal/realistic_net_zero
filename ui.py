@@ -83,3 +83,40 @@ def sidebar_building(systems, key_prefix, with_life=True):
             life = st.slider("Design life (years)", 20, 100, 50, key=key_prefix + "life")
     st.divider()
     return system, btype, life
+
+
+# ---------- image helpers ----------
+import base64, functools, os as _os
+
+
+@functools.lru_cache(maxsize=64)
+def b64(path):
+    with open(path, "rb") as f:
+        return "data:image/png;base64," + base64.b64encode(f.read()).decode()
+
+
+def strip(items):
+    """items: list of (path, caption). A thin row of equal thumbnails."""
+    cells = "".join(f'<div class="th"><div class="im"><img src="{b64(p)}"></div><div class="c">{c}</div></div>'
+                    for p, c in items)
+    st.markdown(f'<div class="strip" style="grid-template-columns:repeat({len(items)},1fr)">{cells}</div>',
+                unsafe_allow_html=True)
+
+
+EXTRA_CSS = """<style>
+.strip{display:grid;gap:12px}
+.th{border:1px solid #E1E6E6;border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:6px;background:#FCFDFD}
+.th .im{height:120px;width:100%;display:flex;align-items:center;justify-content:center}
+.th img{max-height:120px;max-width:100%;object-fit:contain}
+.th .c{font-size:.78rem;color:#5B6E6C}
+.ptitle{font-size:1.55rem;font-weight:800;color:#14302E;line-height:1.2}
+.psub{font-size:.98rem;color:#5B6E6C;margin:2px 0 4px}
+.skbox{display:flex;align-items:center;justify-content:center;gap:14px;height:100%}
+.skbox img{max-width:100%;object-fit:contain}
+.skcap{font-size:.78rem;color:#7A8A88;text-align:center;margin-top:6px}
+.st-key-phdr, .st-key-phdr2, .st-key-phdr3, .st-key-phdr4, .st-key-popt3, .st-key-popt4 {background:#FAFBFB}
+</style>"""
+
+
+def extra_css():
+    st.markdown(EXTRA_CSS, unsafe_allow_html=True)

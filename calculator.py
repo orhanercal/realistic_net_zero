@@ -127,14 +127,14 @@ ui.header("Realistic Net Zero Energy Building (RNZEB)",
 ui.band(btype, system, tone)
 ui.gap()
 sk_sys = SYSTEMS[system]
-i1, i2 = st.columns(2, gap="large")
-with i1:
-    with st.container(border=True):
-        st.image(os.path.join(HERE, f"{sk_sys}_structure.png"), caption=f"{system} structure", width="stretch")
-with i2:
-    with st.container(border=True):
-        st.image(os.path.join(HERE, f"{sk_sys}_render.png"), caption=f"{system} house", width="stretch")
-ui.gap()
+elev_label = "South elevation" if sk_sys == "steel" else "East elevation"
+ui.extra_css()
+ui.strip([(os.path.join(HERE, f"{sk_sys}_render.png"), "House (3D)"),
+          (os.path.join(HERE, f"{sk_sys}_structure.png"), "Structure (3D)"),
+          (os.path.join(HERE, f"{sk_sys}_section.png"), "Section"),
+          (os.path.join(HERE, f"{sk_sys}_elev_structure.png"), "Structure elevation"),
+          (os.path.join(HERE, f"{sk_sys}_elev_front.png"), elev_label)])
+ui.gap(); ui.gap()
 
 # ---------------- Bill of materials ----------------
 key = f"{sk_sys}_{'low' if rnze else 'trad'}"

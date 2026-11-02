@@ -83,7 +83,7 @@ def evaluate(btype, env, main_dir, wwr, natvent):
 
 def compass_svg(main_dir):
     rot = DIRS.index(main_dir) * 45
-    return f"""<div class="center"><svg viewBox="0 0 220 220" width="230" height="230" xmlns="http://www.w3.org/2000/svg">
+    return f"""<div class="center"><svg viewBox="0 0 220 220" width="200" height="200" xmlns="http://www.w3.org/2000/svg">
 <circle cx="110" cy="110" r="96" fill="#F7FAFA" stroke="#C9D8D7"/>
 <text x="110" y="24" text-anchor="middle" font-size="14" font-weight="700" fill="#14302E">N</text>
 <text x="110" y="206" text-anchor="middle" font-size="12" fill="#5B6E6C">S</text>
@@ -116,60 +116,86 @@ def render(btype, E1, system):
                "passive effects are added as differences from Optimum. Values marked ⓘ are assumptions. "
                "Not a compliance tool.")
     ui.gap()
-    left, right = st.columns([3, 2], gap="large")
+    ui.extra_css()
+    sysk = {"Steel": "steel", "Reinforced concrete": "rc", "Timber": "timber"}[system]
+    tk = "rnze" if btype == "RNZE building" else "trad"
+    P = lambda n: os.path.join(HERE, n)
+    default_env = 0 if btype == "Traditional building" else 1
+    H1, H2, H3 = 520, 636, 310
+
+    # ---------- Row 1: Orientation | building image and compass ----------
+    left, right = st.columns(2, gap="large")
     with left:
-        with st.container(border=True):
-            a, b = st.columns([3, 2], vertical_alignment="center")
+        with st.container(border=True, height=H1):
+            with st.container(border=True, key="phdr"):
+                st.markdown('<div class="ptitle">Orientation</div>', unsafe_allow_html=True,
+                            help="Changes solar gain for heating, daylight in living spaces and PV yield. "
+                                 "Assumptions: London vertical irradiance (Oct–Apr), PV yield factors for a ~30° roof. "
+                                 "Wind yield assumed independent of orientation.")
+                main_dir = st.selectbox("The main facade faces", DIRS,
+                                        format_func=lambda d: "S (Optimum)" if d == "S" else d, key="pd_or")
+            with st.container(border=True, height=300):
+                st.markdown(f'''<div class="skbox" style="height:230px">
+<img src="{ui.b64(P("sketch_orientation.png"))}" style="width:48%;max-height:220px">
+<img src="{ui.b64(P("sketch_pv_wind.png"))}" style="width:48%;max-height:220px"></div>
+<div class="skcap">Plan orientation · PV yield follows the roof orientation · Ridge-mounted wind turbine yield assumed unchanged</div>''',
+                            unsafe_allow_html=True)
+    with right:
+        with st.container(border=True, height=H1):
+            st.markdown(f'''<div class="skbox" style="flex-direction:column;gap:6px">
+<img src="{ui.b64(P(f"{sysk}_{tk}_front.png"))}" style="max-height:220px">
+<div class="skcap">{btype} · {system} structure (case study)</div>
+{compass_svg(main_dir)}<div class="skcap">Main facade orientation</div></div>''', unsafe_allow_html=True)
+    ui.gap()
+
+    # ---------- Row 2: Window-wall ratio | Natural ventilation + Envelope ----------
+    left, right = st.columns(2, gap="large")
+    with left:
+        with st.container(border=True, height=H2):
+            a, b = st.columns(2, vertical_alignment="center")
             with a:
-                main_dir = st.selectbox("Orientation: the main facade faces", DIRS,
-                                        format_func=lambda d: "S (Optimum)" if d == "S" else d, key="pd_or",
-                                        help="Changes solar gain for heating, daylight in living spaces and PV yield. "
-                                             "Assumptions: London vertical irradiance (Oct–Apr), PV yield factors for a ~30° roof. "
-                                             "Wind yield assumed independent of orientation.")
+                with st.container(border=True, key="phdr2", height=190):
+                    st.markdown('<div style="height:8px"></div><div class="ptitle" style="font-size:1.3rem">Window-wall ratio by facade (%)</div>',
+                                unsafe_allow_html=True,
+                                help="More glazing raises heat loss and solar gain; front-facade glazing also "
+                                     "drives daylight in living spaces (assumption: halving it adds ~25% to their "
+                                     "lighting, doubling it saves ~15%).")
             with b:
-                sketch("sketch_orientation.png")
-            _, mid, _ = st.columns([1, 3, 1])
-            with mid:
-                sketch("sketch_pv_wind.png", "PV yield follows the roof orientation")
-        ui.gap()
-        with st.container(border=True):
-            a, b = st.columns([3, 2], vertical_alignment="center")
-            a.markdown("**Window-wall ratio by facade (%)**")
-            with b:
-                sketch("sketch_daylight.png")
+                with st.container(border=True, height=190):
+                    st.markdown(f'<div class="skbox"><img src="{ui.b64(P("sketch_daylight.png"))}" style="max-height:160px"></div>',
+                                unsafe_allow_html=True)
+            ui.gap()
             wwr = {}
             cols = st.columns(2)
             for i, f in enumerate(FACADES):
                 with cols[i % 2]:
-                    with st.container(border=True):
-                        wwr[f] = st.slider(f"{f} (Optimum {OPT_PCT[f]}%)", 0.0, 80.0, OPT_PCT[f], 0.5, key=f"pd_w{i}",
-                                           help="More glazing raises heat loss and solar gain; front-facade glazing also "
-                                                "drives daylight in living spaces (assumption: halving it adds ~25% to their "
-                                                "lighting, doubling it saves ~15%).")
-        ui.gap()
-        with st.container(border=True):
-            a, b = st.columns([3, 2], vertical_alignment="center")
-            with a:
-                natvent = st.radio("Natural ventilation", ["Optimum (openable windows)", "None (mechanical ventilation)"],
-                                   key="pd_nv",
-                                   help="Assumption: whole-house mechanical ventilation ~45 W continuous, ~400 kWh/yr.") \
-                    .startswith("Optimum")
-            with b:
-                sketch("sketch_ventilation.png")
-        ui.gap()
-        with st.container(border=True):
-            a, b = st.columns([3, 2], vertical_alignment="center")
-            default_env = 0 if btype == "Traditional building" else 1
-            with a:
-                env = st.radio("Envelope", list(ENVELOPE), index=default_env, key=f"pd_env_{btype}",
-                               help="U-values from the paper (Tables 12 and 17). Affects heating only.")
-            with b:
-                sketch("sketch_envelope.png")
+                    with st.container(border=True, height=150):
+                        wwr[f] = st.slider(f"{f} (Optimum {OPT_PCT[f]}%)", 0.0, 80.0, OPT_PCT[f], 0.5, key=f"pd_w{i}")
     with right:
-        with st.container(border=True):
-            img = "traditional.png" if btype == "Traditional building" else "rnze.png"
-            st.image(os.path.join(HERE, img), caption=f"{btype} (case study)", width="stretch")
-            st.markdown(compass_svg(main_dir), unsafe_allow_html=True)
+        for title, sub, sketchf, kind, kh, ko in [
+                ("Natural ventilation", "Ventilation strategy", "sketch_ventilation.png", "nv", "phdr3", "popt3"),
+                ("Envelope", "Insulation and glazing", "sketch_envelope.png", "env", "phdr4", "popt4")]:
+            with st.container(border=True, height=H3):
+                a, b = st.columns(2, vertical_alignment="center")
+                with a:
+                    with st.container(border=True, key=kh, height=104):
+                        st.markdown(f'<div class="ptitle" style="font-size:1.2rem">{title}</div><div class="psub">{sub}</div>',
+                                    unsafe_allow_html=True,
+                                    help=("Assumption: whole-house mechanical ventilation ~45 W continuous, ~400 kWh/yr."
+                                          if kind == "nv" else "U-values from the paper (Tables 12 and 17). Affects heating only."))
+                    with st.container(border=True, key=ko, height=150):
+                        if kind == "nv":
+                            natvent = st.radio(title, ["Optimum (openable windows)", "None (mechanical ventilation)"],
+                                               key="pd_nv", label_visibility="collapsed").startswith("Optimum")
+                        else:
+                            env = st.radio(title, list(ENVELOPE), index=default_env, key=f"pd_env_{btype}",
+                                           label_visibility="collapsed")
+                with b:
+                    with st.container(border=True, height=266):
+                        st.markdown(f'<div class="skbox"><img src="{ui.b64(P(sketchf))}" style="max-height:230px"></div>',
+                                    unsafe_allow_html=True)
+            if kind == "nv":
+                st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
 
     opt = evaluate(btype, list(ENVELOPE)[default_env], "S", dict(OPT_PCT), True)
     des = evaluate(btype, env, main_dir, wwr, natvent)
