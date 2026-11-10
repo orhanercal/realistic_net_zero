@@ -257,8 +257,8 @@ def render(btype, E1, system):
         st.plotly_chart(comparison_chart(opt, des), width="stretch")
 
 
-CAT_COLORS = {"Heating": "#D98C6C", "Cooling": "#7FB3D5", "Appliances": "#B9A6D6", "Lighting": "#E9C46A",
-              "Mechanical ventilation": "#9AA9A7"}
+CAT_COLORS = {"Heating": "#CBAE97", "Cooling": "#A9C3D6", "Appliances": "#C2BDD6", "Lighting": "#E6D6A6",
+              "Mechanical ventilation": "#BCC6C4"}   # soft, muted tones
 
 
 def comparison_chart(opt, des):
@@ -279,21 +279,21 @@ def comparison_chart(opt, des):
         fig.add_annotation(x=x, y=e2, text=f"<b>E2 {e2:,.0f}</b>", showarrow=False, yshift=12,
                            font=dict(size=12, color="#14302E"))
         if e3 > 0:
-            fig.add_shape(type="rect", x0=x - 0.32, x1=x + 0.32, y0=0, y1=e3, fillcolor="rgba(59,165,92,0.22)",
-                          line=dict(color="#2E8B57", width=1.5), layer="above")
-            fig.add_shape(type="line", x0=x - 0.32, x1=x + 0.32, y0=e3, y1=e3, line=dict(color="#2E8B57", width=3),
+            fig.add_shape(type="rect", x0=x - 0.32, x1=x + 0.32, y0=0, y1=e3, fillcolor="rgba(95,160,120,0.18)",
+                          line=dict(color="#5E9472", width=1.5), layer="above")
+            fig.add_shape(type="line", x0=x - 0.32, x1=x + 0.32, y0=e3, y1=e3, line=dict(color="#4E8A64", width=3),
                           layer="above")
             fig.add_annotation(x=x + 0.33, y=e3, text=f"<b>E3 {e3:,.0f}</b>", showarrow=False, xanchor="left",
-                               font=dict(size=12, color="#2E8B57"))
+                               font=dict(size=12, color="#4E8A64"))
             dlt = round(e3) - round(e2)
             fig.add_annotation(x=x, y=max(e2, e3), yshift=34, showarrow=False,
                                text=(f"<b>Surplus +{dlt:,} kWh/yr</b>" if dlt >= 0 else f"<b>Shortfall −{-dlt:,} kWh/yr</b>"),
-                               font=dict(size=13, color="#2E8B57" if dlt >= 0 else "#B5544A"))
+                               font=dict(size=13, color="#4E8A64" if dlt >= 0 else "#B5544A"))
         else:
             fig.add_annotation(x=x, y=e2, yshift=34, showarrow=False, text="<b>No on-site generation</b>",
                                font=dict(size=13, color="#B5544A"))
     fig.add_trace(go.Bar(x=[None], y=[None], name="E3 renewable generation",
-                         marker=dict(color="rgba(59,165,92,0.22)", line=dict(color="#2E8B57", width=1.5))))
+                         marker=dict(color="rgba(95,160,120,0.18)", line=dict(color="#5E9472", width=1.5))))
     fig.update_layout(barmode="stack", height=520, plot_bgcolor="white", paper_bgcolor="white",
                       margin=dict(l=10, r=10, t=30, b=10), font=dict(color="#14302E"),
                       legend=dict(orientation="h", y=-0.12), yaxis_title="kWh/yr", bargap=0.3)
