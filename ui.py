@@ -48,6 +48,11 @@ def css():
     table.sum tr.grp td{font-weight:700;text-align:left;padding-top:10px}
     table.sum tr.tot td{font-weight:700}
     .pos{color:%(good)s;font-weight:600} .neg{color:%(bad)s;font-weight:600} .zero{color:%(zero)s}
+    .btype{margin:0 0 10px;color:%(ink)s}
+    .btlab{font-size:1.05rem;color:%(muted)s;font-weight:600}
+    .btname{font-size:1.25rem;font-weight:800}
+    .btdesc{font-size:.92rem;color:%(muted)s;margin-top:2px;max-width:900px}
+    .res .fx{font-size:.82rem;color:%(muted)s;margin-top:2px}
     .center{text-align:center}
     </style>""" % dict(ink=INK, muted=MUTED, good=GOOD, bad=BAD, zero=ZERO), unsafe_allow_html=True)
 
@@ -62,8 +67,23 @@ def header(title, caption):
     st.divider()
 
 
+BTYPE = {
+    "RNZE building": ("Realistic Net Zero Energy Building (RNZEB)", "#24613F",
+                      "Low-embodied-energy materials, low operational energy (heat pump, LED lighting, A+++ appliances) "
+                      "and on-site renewable generation (solar PV and a roof wind turbine) that repays the energy used "
+                      "to build and run the house."),
+    "Traditional building": ("Traditional building", "#8A5A2B",
+                             "Typical materials and operational energy (gas boiler, air conditioning, incandescent "
+                             "lighting, typical appliances), with no on-site renewable generation."),
+}
+
+
 def band(btype, system, tone):
     pt = PAL[tone]
+    name, colr, desc = BTYPE[btype]
+    st.markdown(f'<div class="btype"><span class="btlab">Building type:</span> '
+                f'<span class="btname" style="color:{colr}">{name}</span><div class="btdesc">{desc}</div></div>',
+                unsafe_allow_html=True)
     st.markdown(f'<div class="band" style="background:linear-gradient(90deg,{pt["e1"][0]},{pt["e2"][0]},{pt["e3"][0]});'
                 f'border:1px solid {pt["e2"][1]}"><span class="chip">{btype}</span>'
                 f'<span class="struct">{system.upper()} STRUCTURE</span></div>', unsafe_allow_html=True)

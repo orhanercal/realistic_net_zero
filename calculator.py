@@ -86,17 +86,27 @@ with st.sidebar:
     st.header("Adjust inputs")
     with st.container(key=f"e1_{tone}"):
         st.markdown("**E1 Materials**")
-        uploaded = st.file_uploader("Upload a Revit material take-off (CSV: Material type, Quantity (kg), "
-                                    "Embodied energy (MJ/kg))", type="csv")
+        uploaded = st.file_uploader("Upload a BIM material take-off (Revit, Archicad or other BIM tools) as CSV: "
+                                    "Material type, Quantity (kg), Embodied energy (MJ/kg)", type="csv")
     with st.container(key=f"e2_{tone}"):
         st.markdown("**E2 Operation**")
         p["heat_kw"] = st.number_input("Heating load (kW)", 0.0, 100.0, p["heat_kw"], 0.1, key="hk" + k)
         p["hours"] = st.number_input("Heating hours / year", 0, 8760, p["hours"], 50, key="hh" + k)
-        p["eff"] = st.number_input("Heating COP (heat pump) or efficiency (boiler)", 0.5, 6.0, p["eff"], 0.01, key="ef" + k)
-        p["cool_th"] = st.number_input("Cooling demand, thermal (kWh/yr)", 0.0, 50000.0, p["cool_th"], 50.0, key="ct" + k)
-        p["cool_cop"] = st.number_input("Cooling COP", 0.5, 6.0, p["cool_cop"], 0.1, key="cc" + k)
-        p["light"] = st.number_input("Lighting (kWh/yr)", 0.0, 20000.0, p["light"], 10.0, key="li" + k)
-        p["appl"] = st.number_input("Appliances (kWh/yr)", 0.0, 20000.0, p["appl"], 10.0, key="ap" + k)
+        if rnze:
+            p["eff"] = st.number_input("Heat pump COP (Coefficient of Performance)", 0.5, 6.0, p["eff"], 0.01, key="ef" + k)
+            p["cool_th"] = st.number_input("Cooling demand, thermal (kWh/yr), heat pump cooling", 0.0, 50000.0,
+                                           p["cool_th"], 50.0, key="ct" + k)
+            p["cool_cop"] = st.number_input("Heat pump cooling COP (Coefficient of Performance)", 0.5, 6.0,
+                                            p["cool_cop"], 0.1, key="cc" + k)
+            p["light"] = st.number_input("Lighting, LED (kWh/yr)", 0.0, 20000.0, p["light"], 10.0, key="li" + k)
+            p["appl"] = st.number_input("Appliances, A+++ (kWh/yr)", 0.0, 20000.0, p["appl"], 10.0, key="ap" + k)
+        else:
+            p["eff"] = st.number_input("Gas boiler efficiency (0.92 = 92%)", 0.5, 1.0, p["eff"], 0.01, key="ef" + k)
+            p["cool_th"] = st.number_input("Cooling demand, thermal (kWh/yr), air conditioning", 0.0, 50000.0,
+                                           p["cool_th"], 50.0, key="ct" + k)
+            st.caption("Air conditioning: electricity use as in the published case study.")
+            p["light"] = st.number_input("Lighting, incandescent (kWh/yr)", 0.0, 20000.0, p["light"], 10.0, key="li" + k)
+            p["appl"] = st.number_input("Appliances, typical (kWh/yr)", 0.0, 20000.0, p["appl"], 10.0, key="ap" + k)
     with st.container(key=f"e3_{tone}"):
         st.markdown("**E3 Renewable generation**")
         gen_on = rnze
@@ -129,11 +139,13 @@ ui.gap()
 sk_sys = SYSTEMS[system]
 elev_label = "South elevation" if sk_sys == "steel" else "East elevation"
 ui.extra_css()
-ui.strip([(os.path.join(HERE, f"{sk_sys}_render.png"), "House (3D)"),
+house_img = f"{sk_sys}_rnze_front.png" if rnze else f"{sk_sys}_render.png"
+elev_img = f"{sk_sys}_rnze_elev_front.png" if rnze else f"{sk_sys}_elev_front.png"
+ui.strip([(os.path.join(HERE, house_img), "House (3D)"),
           (os.path.join(HERE, f"{sk_sys}_structure.png"), "Structure (3D)"),
           (os.path.join(HERE, f"{sk_sys}_section.png"), "Section"),
           (os.path.join(HERE, f"{sk_sys}_elev_structure.png"), "Structure elevation"),
-          (os.path.join(HERE, f"{sk_sys}_elev_front.png"), elev_label)])
+          (os.path.join(HERE, elev_img), elev_label)])
 ui.gap(); ui.gap()
 
 # ---------------- Bill of materials ----------------
@@ -213,16 +225,21 @@ st.markdown(f"""<div class="card-row">
 ui.gap()
 
 # ---------------- Result boxes ----------------
+r1, r2, r3 = round(E1), round(E2), round(E3)
+bal_r = r3 - r2
 if res["year_reached"]:
     ok = res["within_life"]
     nz, pill = f"{res['years_exact']:.1f} yrs", ("within design life" if ok else "beyond design life")
+    fx_nz = f"E1 ÷ (E3 − E2) = {r1:,} ÷ {bal_r:,}"
 else:
     ok, nz = False, "Never"
     pill = "no on-site generation" if not gen_on else "generation does not cover operation"
+    fx_nz = "E3 − E2 is negative, so the embodied energy debt is never repaid."
 st.markdown(f"""<div class="res-row">
-<div class="res"><div class="lab">Annual balance (generation − operation)</div><div class="val">{fmt(res['surplus_kwh'], True)} kWh/yr</div></div>
+<div class="res"><div class="lab">Annual balance (generation − operation)</div><div class="val">{fmt(bal_r, True)} kWh/yr</div>
+<div class="fx">E3 − E2 = {r3:,} − {r2:,}</div></div>
 <div class="res"><div class="lab">Realistic net zero reached after</div><div class="val">{nz}</div>
-<span class="pill {'ok' if ok else 'bad'}">{pill}</span></div></div>""", unsafe_allow_html=True)
+<span class="pill {'ok' if ok else 'bad'}">{pill}</span><div class="fx">{fx_nz}</div></div></div>""", unsafe_allow_html=True)
 ui.gap()
 
 T = st.tabs([f"{btype} results", "Traditional vs RNZE comparison"])

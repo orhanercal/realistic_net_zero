@@ -7,6 +7,7 @@ published 'Optimum' design, so the Optimum settings reproduce the paper exactly.
 """
 import os
 import streamlit as st
+import plotly.graph_objects as go
 from rnzeb_engine import energy_net_zero
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -28,7 +29,12 @@ DIRS = ["S", "SW", "W", "NW", "N", "NE", "E", "SE"]
 # ASSUMPTIONS (literature-typical values for London)
 I_HEAT = {"S": 290, "SE": 240, "SW": 240, "E": 160, "W": 160, "NE": 100, "NW": 100, "N": 85}  # kWh/m2, Oct-Apr, vertical
 PV_FACTOR = {"S": 1.00, "SE": 0.95, "SW": 0.95, "E": 0.80, "W": 0.80, "NE": 0.65, "NW": 0.65, "N": 0.57}
-LIGHT_ORIENT = {"S": 1.00, "SE": 1.035, "SW": 1.035, "E": 1.07, "W": 1.07, "NE": 1.11, "NW": 1.11, "N": 1.15}
+# Summer (May-Sep) vertical solar gain on glazing, weighted towards afternoon peaks: west and east glazing
+# drive cooling most, north glazing least (assumption, London).
+I_COOL = {"S": 330, "SE": 340, "SW": 370, "E": 300, "W": 360, "NE": 170, "NW": 210, "N": 110}  # kWh/m2
+COOL_UTIL, COOL_TH = 0.35, 4350.0               # share of summer gain that becomes cooling load; paper thermal demand
+# Daylight weight of glazing by orientation (north light is diffuse but still useful; assumption)
+DL = {"S": 1.00, "SE": 1.00, "SW": 1.00, "E": 0.95, "W": 0.95, "NE": 0.85, "NW": 0.85, "N": 0.80}
 FRAME, UTIL = 0.7, 0.6
 MECH_VENT = 400                                  # kWh/yr, whole-house mechanical ventilation (~45 W continuous)
 LIGHT = {"Traditional building": dict(day=1205 + 1241 + 219, bed=262 + 262 + 395 + 460, serv=219 + 77 + 59 + 160 + 80 + 154),
@@ -70,15 +76,22 @@ def evaluate(btype, env, main_dir, wwr, natvent):
     ratio = load_w(env, wins) / load_w(base_env, opt_w)
     d_gain = solar_kwh(env, wins, d1) - solar_kwh(base_env, opt_w, d0)
     heat = max(0.0, (p["heat"] * p["eff"] * ratio - d_gain) / p["eff"])
-    L = LIGHT[btype]; r = (wwr["Front facade"] / 100) / (opt_w["Front facade"] / FACADES["Front facade"][1])
+    # Cooling: summer solar gain through the glazing of all four facades, as a difference from Optimum
+    g1, g0 = ENVELOPE[env]["g"], ENVELOPE[base_env]["g"]
+    d_cool = COOL_UTIL * FRAME * (sum(wins[f] * g1 * I_COOL[d1[f]] for f in FACADES)
+                                  - sum(opt_w[f] * g0 * I_COOL[d0[f]] for f in FACADES))
+    cool = p["cool"] * max(0.0, COOL_TH + d_cool) / COOL_TH
+    # Lighting: daylight from the glazing of all four facades, weighted by orientation
+    L = LIGHT[btype]
+    r = sum(wins[f] * DL[d1[f]] for f in FACADES) / sum(opt_w[f] * DL[d0[f]] for f in FACADES)
     m_wwr = 1 + 0.5 * (1 - r) if r <= 1 else 1 - 0.15 * min(r - 1, 1)
-    light = L["day"] * m_wwr * LIGHT_ORIENT[d1["Front facade"]] + L["bed"] + L["serv"]
+    light = L["day"] * m_wwr + L["bed"] + L["serv"]
     vent = 0 if natvent else MECH_VENT
     pv = PV_OPT * PV_FACTOR[main_dir] if p["gen"] else 0.0
     wind = WIND if p["gen"] else 0.0
-    return {"Heating": heat, "Cooling": p["cool"], "Lighting": light, "Appliances": p["appl"],
+    return {"Heating": heat, "Cooling": cool, "Lighting": light, "Appliances": p["appl"],
             "Mechanical ventilation": vent, "PV": pv, "Wind": wind, "gen": pv + wind,
-            "E2": heat + p["cool"] + light + p["appl"] + vent}
+            "E2": heat + cool + light + p["appl"] + vent}
 
 
 def compass_svg(main_dir):
@@ -129,7 +142,7 @@ def render(btype, E1, system):
         with st.container(border=True, height=H1):
             with st.container(border=True, key="phdr"):
                 st.markdown('<div class="ptitle">Orientation</div>', unsafe_allow_html=True,
-                            help="Changes solar gain for heating, daylight in living spaces and PV yield. "
+                            help="Changes winter solar gain (heating), summer solar gain (cooling), daylight and PV yield. "
                                  "Assumptions: London vertical irradiance (Oct–Apr), PV yield factors for a ~30° roof. "
                                  "Wind yield assumed independent of orientation.")
                 main_dir = st.selectbox("The main facade faces", DIRS,
@@ -157,9 +170,10 @@ def render(btype, E1, system):
                 with st.container(border=True, key="phdr2", height=190):
                     st.markdown('<div style="height:8px"></div><div class="ptitle" style="font-size:1.3rem">Window-wall ratio by facade (%)</div>',
                                 unsafe_allow_html=True,
-                                help="More glazing raises heat loss and solar gain; front-facade glazing also "
-                                     "drives daylight in living spaces (assumption: halving it adds ~25% to their "
-                                     "lighting, doubling it saves ~15%).")
+                                help="Each facade changes heating (heat loss and winter sun), cooling (summer sun, "
+                                     "highest on west and east glazing, lowest on north) and lighting (daylight). "
+                                     "Assumptions: halving the daylight glazing adds ~25% to living-space lighting, "
+                                     "doubling it saves ~15%.")
             with b:
                 with st.container(border=True, height=190):
                     st.markdown(f'<div class="skbox"><img src="{ui.b64(P("sketch_daylight.png"))}" style="max-height:160px"></div>',
@@ -182,7 +196,7 @@ def render(btype, E1, system):
                         st.markdown(f'<div class="ptitle" style="font-size:1.2rem">{title}</div><div class="psub">{sub}</div>',
                                     unsafe_allow_html=True,
                                     help=("Assumption: whole-house mechanical ventilation ~45 W continuous, ~400 kWh/yr."
-                                          if kind == "nv" else "U-values from the paper (Tables 12 and 17). Affects heating only."))
+                                          if kind == "nv" else "U-values from the paper (Tables 12 and 17). Affects heating; glazing type also affects solar gain."))
                     with st.container(border=True, key=ko, height=150):
                         if kind == "nv":
                             natvent = st.radio(title, ["Optimum (openable windows)", "None (mechanical ventilation)"],
@@ -220,11 +234,69 @@ def render(btype, E1, system):
     r0, r1 = energy_net_zero(E1, opt["E2"], opt["gen"]), energy_net_zero(E1, des["E2"], des["gen"])
     f = lambda r: ("Never" if not r["year_reached"] else
                    "Over 100 yrs" if r["years_exact"] > 100 else f"{r['years_exact']:.1f} yrs")
-    bal, d = des["gen"] - des["E2"], (des["gen"] - des["E2"]) - (opt["gen"] - opt["E2"])
-    pcls = "zero" if abs(d) < 0.5 else ("ok" if d > 0 else "bad")
+    e1r = round(E1)
+    b0 = round(opt["gen"]) - round(opt["E2"])
+    bal = round(des["gen"]) - round(des["E2"])
+    d = bal - b0
+    pcls = "zero" if d == 0 else ("ok" if d > 0 else "bad")
+    fx = lambda r, b: (f"E1 ÷ (E3 − E2) = {e1r:,} ÷ {b:,}" if r["year_reached"]
+                       else "E3 − E2 is negative, so the embodied energy debt is never repaid.")
     st.markdown(f"""<div class="res-row">
-<div class="res"><div class="lab">Annual balance, this design</div><div class="val">{bal:+,.0f} kWh/yr</div>
-<span class="pill {pcls}">{d:+,.0f} vs Optimum</span></div>
-<div class="res"><div class="lab">Net zero, Optimum</div><div class="val">{f(r0)}</div></div>
-<div class="res"><div class="lab">Net zero, this design</div><div class="val">{f(r1)}</div></div></div>""",
-                unsafe_allow_html=True)
+<div class="res"><div class="lab">Annual balance, this design</div><div class="val">{bal:+,} kWh/yr</div>
+<div class="fx">E3 − E2 = {round(des['gen']):,} − {round(des['E2']):,}</div>
+<span class="pill {pcls}">{d:+,} vs Optimum</span></div>
+<div class="res"><div class="lab">Net zero, Optimum</div><div class="val">{f(r0)}</div>
+<div class="fx">{fx(r0, b0)} (published design)</div></div>
+<div class="res"><div class="lab">Net zero, this design</div><div class="val">{f(r1)}</div>
+<div class="fx">{fx(r1, bal)}</div></div></div>""", unsafe_allow_html=True)
+    ui.gap()
+    with st.container(border=True):
+        st.markdown('<div class="sec">Comparison: annual energy, Optimum vs this design</div>', unsafe_allow_html=True)
+        st.caption("Coloured bars: energy used (E2). Green layer: renewable energy generated (E3). "
+                   "Where the green layer covers the whole bar, generation meets demand; any uncovered part is a shortfall.")
+        st.plotly_chart(comparison_chart(opt, des), width="stretch")
+
+
+CAT_COLORS = {"Heating": "#D98C6C", "Cooling": "#7FB3D5", "Appliances": "#B9A6D6", "Lighting": "#E9C46A",
+              "Mechanical ventilation": "#9AA9A7"}
+
+
+def comparison_chart(opt, des):
+    xs, names = [0, 1], ["Optimum (published design)", "This design"]
+    fig = go.Figure()
+    for cat, colr in CAT_COLORS.items():
+        ys = [opt[cat], des[cat]]
+        if max(ys) < 0.5:
+            continue
+        fig.add_trace(go.Bar(x=xs, y=ys, name=cat, marker_color=colr, width=0.42,
+                             text=[f"{cat}<br>{v:,.0f}" if v > 900 else "" for v in ys], textposition="inside",
+                             insidetextanchor="middle", textfont=dict(size=11, color="#14302E"),
+                             hovertemplate=cat + ": %{y:,.0f} kWh/yr<extra></extra>"))
+    top = 0
+    for x, r in zip(xs, (opt, des)):
+        e2, e3 = r["E2"], r["gen"]
+        top = max(top, e2, e3)
+        fig.add_annotation(x=x, y=e2, text=f"<b>E2 {e2:,.0f}</b>", showarrow=False, yshift=12,
+                           font=dict(size=12, color="#14302E"))
+        if e3 > 0:
+            fig.add_shape(type="rect", x0=x - 0.32, x1=x + 0.32, y0=0, y1=e3, fillcolor="rgba(59,165,92,0.22)",
+                          line=dict(color="#2E8B57", width=1.5), layer="above")
+            fig.add_shape(type="line", x0=x - 0.32, x1=x + 0.32, y0=e3, y1=e3, line=dict(color="#2E8B57", width=3),
+                          layer="above")
+            fig.add_annotation(x=x + 0.33, y=e3, text=f"<b>E3 {e3:,.0f}</b>", showarrow=False, xanchor="left",
+                               font=dict(size=12, color="#2E8B57"))
+            dlt = round(e3) - round(e2)
+            fig.add_annotation(x=x, y=max(e2, e3), yshift=34, showarrow=False,
+                               text=(f"<b>Surplus +{dlt:,} kWh/yr</b>" if dlt >= 0 else f"<b>Shortfall −{-dlt:,} kWh/yr</b>"),
+                               font=dict(size=13, color="#2E8B57" if dlt >= 0 else "#B5544A"))
+        else:
+            fig.add_annotation(x=x, y=e2, yshift=34, showarrow=False, text="<b>No on-site generation</b>",
+                               font=dict(size=13, color="#B5544A"))
+    fig.add_trace(go.Bar(x=[None], y=[None], name="E3 renewable generation",
+                         marker=dict(color="rgba(59,165,92,0.22)", line=dict(color="#2E8B57", width=1.5))))
+    fig.update_layout(barmode="stack", height=520, plot_bgcolor="white", paper_bgcolor="white",
+                      margin=dict(l=10, r=10, t=30, b=10), font=dict(color="#14302E"),
+                      legend=dict(orientation="h", y=-0.12), yaxis_title="kWh/yr", bargap=0.3)
+    fig.update_xaxes(tickvals=xs, ticktext=names, range=[-0.6, 1.75])
+    fig.update_yaxes(range=[0, top * 1.22], gridcolor="#EEF2F1")
+    return fig
