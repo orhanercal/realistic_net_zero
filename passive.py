@@ -123,7 +123,7 @@ def _fmt_change(k, d):
     return f'<td class="{"pos" if good else "neg"}">{d:+,.0f}</td>'
 
 
-def render(btype, E1, system):
+def render(btype, E1, system, life=50):
     import ui
     st.caption("Optimum = the published case-study design. The core heating method is the published RNZEB method; "
                "passive effects are added as differences from Optimum. Values marked ⓘ are assumptions. "
@@ -241,14 +241,18 @@ def render(btype, E1, system):
     pcls = "zero" if d == 0 else ("ok" if d > 0 else "bad")
     fx = lambda r, b: (f"E1 ÷ (E3 − E2) = {e1r:,} ÷ {b:,}" if r["year_reached"]
                        else "E3 − E2 is negative, so the embodied energy debt is never repaid.")
+    ok_ = lambda r: r["year_reached"] and r["years_exact"] <= life
+    cls = lambda r: "good" if ok_(r) else "over"
+    warn = lambda r: "" if ok_(r) else (f'<div class="warn">Beyond the {life}-year design life: this design does not reach realistic net zero.</div>'
+                                        if r["year_reached"] else '<div class="warn">Realistic net zero is never reached.</div>')
     st.markdown(f"""<div class="res-row">
 <div class="res"><div class="lab">Annual balance, this design</div><div class="val">{bal:+,} kWh/yr</div>
 <div class="fx">E3 − E2 = {round(des['gen']):,} − {round(des['E2']):,}</div>
 <span class="pill {pcls}">{d:+,} vs Optimum</span></div>
-<div class="res"><div class="lab">Net zero, Optimum</div><div class="val">{f(r0)}</div>
-<div class="fx">{fx(r0, b0)} (published design)</div></div>
-<div class="res"><div class="lab">Net zero, this design</div><div class="val">{f(r1)}</div>
-<div class="fx">{fx(r1, bal)}</div></div></div>""", unsafe_allow_html=True)
+<div class="res {cls(r0)}"><div class="lab">Net zero, Optimum</div><div class="val">{f(r0)}</div>
+<div class="fx">{fx(r0, b0)} (published design)</div>{warn(r0)}</div>
+<div class="res {cls(r1)}"><div class="lab">Net zero, this design</div><div class="val">{f(r1)}</div>
+<div class="fx">{fx(r1, bal)}</div>{warn(r1)}</div></div>""", unsafe_allow_html=True)
     ui.gap()
     with st.container(border=True):
         st.markdown('<div class="sec">Comparison: annual energy, Optimum vs this design</div>', unsafe_allow_html=True)

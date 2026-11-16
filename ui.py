@@ -53,6 +53,11 @@ def css():
     .btname{font-size:1.25rem;font-weight:800}
     .btdesc{font-size:.92rem;color:%(muted)s;margin-top:2px;max-width:900px}
     .res .fx{font-size:.82rem;color:%(muted)s;margin-top:2px}
+    .res.good{background:#EEF7F0;border:1.5px solid #8DC3A0}
+    .res.good .lab,.res.good .val,.res.good .fx{color:#24613F}
+    .res.over{background:#FBEFED;border:1.5px solid #DDA39B}
+    .res.over .lab,.res.over .val,.res.over .fx{color:#8A2E25}
+    .res .warn{font-size:.82rem;font-weight:600;margin-top:4px;color:#8A2E25}
     .center{text-align:center}
     </style>""" % dict(ink=INK, muted=MUTED, good=GOOD, bad=BAD, zero=ZERO), unsafe_allow_html=True)
 

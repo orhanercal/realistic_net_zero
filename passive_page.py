@@ -11,7 +11,7 @@ SYSTEMS = {"Steel": "steel", "Reinforced concrete": "rc", "Timber": "timber"}
 
 ui.css()
 with st.sidebar:
-    system, btype, _ = ui.sidebar_building(SYSTEMS, "p_", with_life=False)
+    system, btype, life = ui.sidebar_building(SYSTEMS, "p_", with_life=True)
 
 key = f"{SYSTEMS[system]}_{'low' if btype == 'RNZE building' else 'trad'}"
 E1 = sum(m["qty_kg"] * m["ee_factor"] for m in EE[key] if not m.get("excluded")) / MJ_PER_KWH
@@ -21,4 +21,4 @@ ui.header("Passive design explorer",
           "natural ventilation and the building envelope change energy demand, generation and the net zero year, "
           "compared with the Optimum case-study design.")
 ui.band(btype, system, "rnze" if btype == "RNZE building" else "trad")
-passive.render(btype, E1, system)
+passive.render(btype, E1, system, life)

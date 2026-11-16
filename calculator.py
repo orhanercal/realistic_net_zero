@@ -238,14 +238,14 @@ else:
 st.markdown(f"""<div class="res-row">
 <div class="res"><div class="lab">Annual balance (generation − operation)</div><div class="val">{fmt(bal_r, True)} kWh/yr</div>
 <div class="fx">E3 − E2 = {r3:,} − {r2:,}</div></div>
-<div class="res"><div class="lab">Realistic net zero reached after</div><div class="val">{nz}</div>
+<div class="res {'good' if ok else 'over'}"><div class="lab">Realistic net zero reached after</div><div class="val">{nz}</div>
 <span class="pill {'ok' if ok else 'bad'}">{pill}</span><div class="fx">{fx_nz}</div></div></div>""", unsafe_allow_html=True)
 ui.gap()
 
-T = st.tabs([f"{btype} results", "Traditional vs RNZE comparison"])
+st.markdown(f'<div class="sec">{btype} results</div>', unsafe_allow_html=True)
 
 # ---------------- Tab 1 ----------------
-with T[0]:
+if True:
     with st.container(border=True):
         box("Cumulative energy balance", "Energy debt from materials, repaid by the annual renewable surplus.")
         fig = go.Figure(); fig.add_hline(y=0, line_dash="dash", line_color="#9AA9A7")
@@ -290,7 +290,10 @@ with T[0]:
             st.success("This design reaches realistic net zero within its design life.")
 
 # ---------------- Tab 2 ----------------
-with T[1]:
+ui.gap()
+st.divider()
+st.markdown('<div class="sec">Traditional vs RNZE comparison</div>', unsafe_allow_html=True)
+if True:
     t_op, r_op = make_op(OPS["typ"]).annual_kwh(), make_op(OPS["low"]).annual_kwh()
     r_gen = Generation(pv_area_m2=GEN["pv"], wind_kwh=GEN["wind"]).annual_kwh()
     vals = {n: (ee_kwh(table(f"{s}_trad")), ee_kwh(table(f"{s}_low"))) for n, s in SYSTEMS.items()}
@@ -298,17 +301,11 @@ with T[1]:
 
     st.markdown(f'<div class="sec">Selected structure: {system}</div>', unsafe_allow_html=True)
     with st.container(border=True):
-        box(f"{system}: traditional vs RNZE", "Traditional houses keep adding energy debt; the RNZE house repays it.")
+        box(f"{system}: traditional vs RNZE", "Traditional houses keep adding energy debt; the RNZE house repays it at the marked year.")
         f1g = go.Figure(); f1g.add_hline(y=0, line_dash="dash", line_color="#9AA9A7")
         balance_trace(f1g, et, t_op, 0, 50, "Traditional", C_SYS[system], dash="dot", label=False)
         balance_trace(f1g, er, r_op, r_gen, 50, "RNZE", C_SYS[system], label=False)
         f1g.update_xaxes(title="Year"); st.plotly_chart(style_fig(f1g), width="stretch")
-    ui.gap()
-    with st.container(border=True):
-        box(f"{system} RNZE: when the energy debt is repaid", "Embodied energy debt at year 0, repaid by the annual renewable surplus.")
-        f2g = go.Figure(); f2g.add_hline(y=0, line_dash="dash", line_color="#9AA9A7")
-        balance_trace(f2g, er, r_op, r_gen, 50, "RNZE", C_SYS[system])
-        f2g.update_xaxes(title="Year"); st.plotly_chart(style_fig(f2g), width="stretch")
 
     ui.gap(); st.divider()
     st.markdown('<div class="sec">All structural systems</div>', unsafe_allow_html=True)
